@@ -38,9 +38,9 @@
 \title{\ttlfnt EE 194 Project Paper}
 
 % Author names, affiliations, and e-mail below
-\author{{\aufnt   Xu Liu} \\ 
+\author{{\aufnt   Xu Liu, Matt Asnes, Behnam Heydarshahi} \\ 
 {\affaddr Tufts University} \\ 
-{\affaddr     xu.liu@tufts.edu,  }}
+{\affaddr     xu.liu@tufts.edu,  behnam@cs.tufts.edu, matthew.asnes@tufts.edu}}
 
 \maketitle
 %\copyrightspace
@@ -65,14 +65,14 @@ in parallel way.
 %\input{implementation.tex}
 %\input{evaluation.tex}
 %\input{conclusion.tex}
+\section*{}
 
 \section{Introduction}
 
  Since we have hit the power wall and memory wall on the road of improving computers' performance by continually increasing the frequency of
  processor, we are exploring other ways to keep the performance of computer growing while keep the CPU cool. These ways include making more CPU on single chip, exploiting GPU or AISC's, dynamically adjusting voltage and frequency and so on.\\
- 
- GPU probably will be very helpful for improving integrated performance of the whole computer system. Therefore people usually care about
- how GPU benefits the overall performance and what kind of programming model helps.
+GPU probably will be very helpful for improving integrated performance of the whole computer system. Therefore people usually care about
+how GPU benefits the overall performance and what kind of programming model helps.
  
 
 \section{Project Description}
@@ -115,20 +115,18 @@ each module.
 \caption{{\small {\bf Comparison between sequential and parallel sorting on small size data set.} }}
 \label{fig-knearest-perf}
 \end{figure}
-\section*{}
-Figure 1 shows, for small size data set (less than 10000 elements), there is no obvious trend and also no big difference between different sorting algorithms.
-
-
+ 
+Figure 1 shows, for small size data set (less than 10000 elements), there is no obvious trend and also no big difference between different sorting algorithms.\\
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.8\hsize]{./figures/sVp_m.jpg}
 \end{center}
 \caption{{\small {\bf Comparison between sequential and parallel sorting on median size data set.} {\em This figure shows, for median size data set (between tens of thousands and million),  sequential outperforms parallel.}}}
 \label{fig-knearest-perf}
-\end{figure}
- 
-
-
+\end{figure}For median and large size data set, sequential sorting outperforms parallel sorting as shown in Figure 2 and 3. This result was not expected by us.
+\section*{}
+Figure 4 is the summary of our comparison results.
+This is the first time we program on GPU and also first time use cuda.  We think the reason why the sequential sorting are so fast is that CPU has been optimized well enough by pipeline, branch prediction, cache policy and so on. Well why the parallel sorting are slow? We continue to profile all the parallel to see details.
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.8\hsize]{./figures/sVp_l.jpg}
@@ -136,11 +134,27 @@ Figure 1 shows, for small size data set (less than 10000 elements), there is no 
 \caption{{\small {\bf Comparison between sequential and parallel sorting on large size data set.} {\em This figure shows, for large size data set (between millions and tens of millions),  sequential outperforms parallel.}}}
 \label{fig-knearest-perf}
 \end{figure}
+\section*{}
+Figure 5 is the profiling for parallel radix.
+Parallel radix sort comes from Nvidia thrust library, therefore we are not very familiar with its structure. The profiling shows that it is
+very compact and exploit the shared memory well. However it still can not outperform sequential radix sort.
+\section*{}
+Radix is kind of data independent, we can keep multiple threads on data set.
+It only visit memory one or two times for each element.
+Actually it possesses a programming model which  fit in GPU very well except it may need dynamically allocate memory.
+data independent. We probably can improve it .
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=0.8\hsize]{./figures/summary.png}
+\end{center}
+\caption{{\small {\bf Summary for comparison between sequential algorithms and parallels.}  }}
+\label{fig-knearest-perf}
+\end{figure}
 
 \section*{}
-For median and large size data set, sequential sorting outperforms Parallel sorting as shown in Figure 2 and 3. This result was not expected by us. This is the first time we program on GPU and also first time use cuda.  We think the reason why the sequential sorting are so fast is that CPU has been optimized well enough by pipeline, branch prediction, cache policy and so on. Well why the parallel sorting are slow? We continue to profile all the parallel to see details.
 
-
+Figure 6 tells us that the last few rounds of parallel merge sort only use few threads and therefore consume most of the time. We think the 
+reason it is slow is that this strategy cannot exploit multiple threads well enough.\\
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.8\hsize]{./figures/radix.png}
@@ -148,18 +162,9 @@ For median and large size data set, sequential sorting outperforms Parallel sort
 \caption{{\small {\bf Profiling for parallel radix sort}}}
 \label{fig-knearest-perf}
 \end{figure}
-
 \section*{}
-Parallel radix sort comes from Nvidia thrust library, therefore we are not very familiar with its structure. The profiling shows that it is
-very compact and exploit the shared memory well. However it still can not outperform sequential radix sort.\\
-
-Radix is kind of data independent, we can keep multiple threads on data set.
-It only visit memory one or two times for each element.
-Actually it possesses a programming model which  fit in GPU very well except it may need dynamically allocate memory.
-data independent. We probably can improve it .
- 
-
-
+In Figure 7, we only cite very small part of the profiling since there are many same module which number is up to the same as the data size.
+Too many threads cause it slow.\\
 
 \begin{figure}[t]
 \begin{center}
@@ -168,11 +173,9 @@ data independent. We probably can improve it .
 \caption{{\small {\bf Profiling for parallel merge sort.}  }}
 \label{fig-knearest-perf}
 \end{figure}
-
- 
-Figure 5 tells us that the last few rounds of parallel merge sort only use few threads and therefore consume most of the time. We think the 
-reason it is slow is that this strategy cannot exploit multiple threads well enough.
-
+\section*{}
+Figure 8 shows the bitonic can exploit as many threads as half of the data size, which make it fast. We think it is the only parallel algorithm
+with potential to outperform sequential on our platform. Unfortunately we only make it work up to array with size of 9215. 
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=0.8\hsize]{./figures/odd.png}
@@ -180,10 +183,8 @@ reason it is slow is that this strategy cannot exploit multiple threads well eno
 \caption{{\small {\bf Profiling for parallel even odd sort.}  }}
 \label{fig-knearest-perf}
 \end{figure}
-
+Profiling shows that all parallel programs written by us all don't take the advantage of shared memory, which is a direction to improve them.
  
-In Figure 6, we only cite very small part of the profiling since there are many same module which number is up to the same as the data size.
-Too many threads cause it slow.
 
 \begin{figure}[t]
 \begin{center}
@@ -192,10 +193,8 @@ Too many threads cause it slow.
 \caption{{\small {\bf Profiling for bitonic sort.}  }}
 \label{fig-knearest-perf}
 \end{figure}
-Figure 7 shows the bitonic can exploit as many threads as half of the data size, which make it fast. We think it is the only parallel algorithm
-with potential to outperform sequential on our platform. Unfortunately we only make it work up to array with size of 9215. \\
+ 
 
-Profiling shows that all parallel programs written by us all don't take the advantage of shared memory, which is a direction to improve them.
 
 
 
@@ -206,8 +205,6 @@ Profiling shows that all parallel programs written by us all don't take the adva
 \caption{{\small {\bf Comparison between different parallel sorting on small size data set.}  }}
 \label{fig-knearest-perf}
 \end{figure}
- 
- 
 
 
 \begin{figure}[t]
@@ -218,7 +215,6 @@ Profiling shows that all parallel programs written by us all don't take the adva
 \label{fig-knearest-perf}
 \end{figure}
 
- 
 
 \begin{figure}[t]
 \begin{center}
@@ -228,36 +224,41 @@ Profiling shows that all parallel programs written by us all don't take the adva
 \label{fig-knearest-perf}
 \end{figure}
 \section*{}
-Figure 8, 9 and 10 show the Even-Odd sorting algorithm are much still as profiling shows it takes to many rounds to guarantee the data sorted.
+Figure 9, 10 and  11 show the Even-Odd sorting algorithm are much still as profiling shows it takes to many rounds to guarantee the data sorted.
 Parallel radix is a little better than parallel merge, since on one hand it possesses better characteristics which fit in GPU, on the other hand it
 exploit shared memory well.
-
-
+\section*{}
+ 
 \section{Conclusion}
 
- Although Parallelism is a promising direction to take the advantage of  Moore's law, the programming model is an significant factor affect whether the multiple threads can be used well. Our project most of sorting algorithm don't fit well the GPU programming model. \\
+Although Parallelism is a promising direction to take the advantage of  Moore's law, the programming model is an significant factor affect whether the multiple threads can be used well. In our project most of sorting algorithm don't fit well the GPU programming model. 
  
+ \section*{}
  Model ideal for GPU is 
- \begin{enumerate}
+ \begin{itemize}
 	\item  Not too small amount of data
 	\item Not too big amount of data
 	\item Independent data
 	\item Intensive calculation with infrequent memory visit
-	\item it is best to have  data fit in shared memory 
-\end{enumerate}
-
+	\item It is best to have  data fit in shared memory 
+\end{itemize}
+ 
+ \section*{}
+ Parallel radix sort and bitonic sort do possess the characteristics of the ideal model.
+ That's why they are relatively faster. 
+ \section*{} 
+ For radix, there is still a drawback which is it may need dynamically allocate memory. 
+\section*{}
+ And I think, in our project,  the bitonic is the only one parallel algorithm with potential to outperform sequential algorithms. Unfortunately we only make the bitonic sort work up to
+ 9215, I need more time to debug. 
+ 
+ 
 
 
 %%%%%%%%%%%%%  THIS IS WHERE THE BIBLIOGRAPHY GOES %%%%%%%%%
 
 % Change the word "template" below to the name of the .bib file you use
-\begin{small}
-\bibliographystyle{abbrv} \bibliography{[1] Daniel Cederman and Philippas Tsigas. (2010) GPU-Quicksort: A practical Quicksort algorithm for graphics processors. J. Exp. Algorithmics 14, Article 4 (January 2010), .84 pages.
-}
-\bibliographystyle{abbrv} \bibliography{[2] Ha L, Kruger J, Silva TC (2009) Fast four-way parallel radix sorting on GPUs. Comput Graph Forum 28(8):2368–2378}
-\bibliographystyle{abbrv} \bibliography{}
-\bibliographystyle{abbrv} \bibliography{}
-\end{small}
+ 
 
 \end{document}
 
