@@ -7,7 +7,7 @@ Course Content:
     Instruction Level: pipeline, branch prediction, out of order execution
     Data level: GPU, Vector
     Thread level: Multi processor, memory coherency
-    Request Level: Warehouse
+    Request Level: Warehouse-scale computors
 
 Final project: Comparison between CPU and GPU
 
