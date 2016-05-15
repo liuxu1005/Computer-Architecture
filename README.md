@@ -4,7 +4,7 @@ Tufts comp 140
 Course Content:
 
     Technology Trend: power wall & memory wall => parallelizm
-    Instruction Level: pipeline
+    Instruction Level: pipeline, branch prediction, out of order execution
     Data level: GPU, Vector
     Thread level: Multi processor, memory coherency
     Request Level: Warehouse
