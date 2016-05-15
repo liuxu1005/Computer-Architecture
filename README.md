@@ -1,5 +1,14 @@
 # Computer-Architecture
 Tufts comp 140
+
+Course Content:
+
+    Technology Trend: power wall & memory wall => parallelizm
+    Instruction Level: pipeline
+    Data level: GPU, Vector
+    Thread level: Multi processor, memory coherency
+    Request Level: Warehouse
+
 Final project: Comparison between CPU and GPU
 
 • Platform  
